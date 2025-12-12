@@ -131,7 +131,7 @@ def test_both_cities():
 if __name__ == "__main__":
     
     # Check if API key is set
-    if API_KEY == "PASTE_YOUR_API_KEY_HERE":
+    if API_KEY == "OPENWEATHER_API_KEY":
         print("\n" + "="*60)
         print("  WARNING: API KEY NOT SET")
         print("="*60)
@@ -150,10 +150,7 @@ if __name__ == "__main__":
             test_both_cities()
             
             print("\n" + "="*60)
-            print("🚀 NEXT STEPS:")
+            print("NEXT STEPS:")
             print("="*60)
-            print("1.  API key is working")
-            print("2. ➡️  Now run the full data collection script")
-            print("3. ➡️  Let it collect data for a few hours")
-            print("4. ➡️  Connect Power BI to the CSV file")
+            print("API key is working")
             print("="*60)
