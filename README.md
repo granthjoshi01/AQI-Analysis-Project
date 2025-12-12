@@ -2,6 +2,10 @@
 
 📈 AQI Data Engineering & Delhi Pollution Analysis Project
 
+🎯 Problem Statement
+
+Air quality disparities across Indian cities present a critical public health challenge.During a recent journey from Udaipur to Delhi, a stark contrast in air quality became immediately apparent— Delhi's persistent haze and respiratory discomfort and Udaipur's noticeably clearer skies and fresher air. This personal observation raised fundamental questions: What quantifiable differences exist between these cities? What systemic factors drive Delhi's chronic pollution crisis? And how can data-driven insights make these invisible threats visible?
+
 🔥 Project Overview
 
 This project is a complete end-to-end data engineering + analytics pipeline that collects real-time AQI data, processes it, visualizes trends, and explains why Delhi consistently experiences high air pollution levels.
