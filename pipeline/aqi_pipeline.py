@@ -13,12 +13,8 @@ import sys
 
 # Load API key from environment variable
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
-#BASE_DIR = "/Users/granthjoshi/Downloads/aqi analysis"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-#OUTPUT_FILE = "aqi_cleaned_data.csv"
 OUTPUT_FILE = os.path.join(BASE_DIR, "aqi_cleaned_data.csv")
-#LOG_FILE = "collection.log"
-#STATUS_FILE = "status.json"
 LOG_FILE = os.path.join(BASE_DIR, "collection.log")
 STATUS_FILE = os.path.join(BASE_DIR, "status.json")
 
