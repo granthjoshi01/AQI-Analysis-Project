@@ -10,6 +10,14 @@ Air quality disparities across Indian cities present a critical public health ch
 
 This project is a complete end-to-end data engineering + analytics pipeline that collects real-time AQI data, processes it, visualizes trends, and explains why Delhi consistently experiences high air pollution levels.
 
+
+Live AQI Dashboard (Auto-updating every 5 minutes):
+ https://lookerstudio.google.com/reporting/d5b21012-73de-4ca9-85ed-feaa86f5084b
+
+
+
+
+
 The project includes:
 	•	✔ Real-time AQI Data Pipeline (ETL)
 	•	✔ Interactive AQI Dashboard (Flask / Streamlit)
