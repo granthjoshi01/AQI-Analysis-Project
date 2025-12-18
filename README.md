@@ -12,7 +12,7 @@ This project is a complete end-to-end data engineering + analytics pipeline that
 
 
 Live AQI Dashboard (Auto-updating every 5 minutes):
- https://lookerstudio.google.com/reporting/d5b21012-73de-4ca9-85ed-feaa86f5084b
+ 
 
 
 
