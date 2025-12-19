@@ -9,12 +9,18 @@ import time
 import json
 from typing import Optional, Dict, List
 import sys
+from google_sheets_writer import write_dataframe_to_sheet
 
+import warnings
+from urllib3.exceptions import NotOpenSSLWarning
+warnings.filterwarnings("ignore", category=NotOpenSSLWarning)
 
 # Load API key from environment variable
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_FILE = os.path.join(BASE_DIR, "aqi_cleaned_data.csv")
+GOOGLE_DRIVE_DIR = "/Users/granthjoshi/Library/CloudStorage/GoogleDrive-granthjoshi611@gmail.com/My Drive/AQI_Project"
+LOCAL_OUTPUT_FILE = os.path.join(BASE_DIR, "aqi_cleaned_data.csv")
+CLOUD_OUTPUT_FILE = os.path.join(GOOGLE_DRIVE_DIR, "aqi_cleaned_data.csv")
 LOG_FILE = os.path.join(BASE_DIR, "collection.log")
 STATUS_FILE = os.path.join(BASE_DIR, "status.json")
 
@@ -25,22 +31,22 @@ REQUEST_TIMEOUT = 15
 
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_FILE)
-    ]
-)
+if not logging.getLogger().handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[logging.FileHandler(LOG_FILE)]
+    )
 
 
 class AQIDataPipeline:
     """AQI data collection pipeline"""
     
-    def __init__(self, api_key: str, output_file: str):
+    def __init__(self, api_key: str, local_output: str, cloud_output: str ):
         self.api_key = api_key
-        self.output_file = output_file
-        self.base_url = "http://api.openweathermap.org/data/2.5/air_pollution"
+        self.local_output = local_output
+        self.cloud_output = cloud_output 
+        self.base_url = "https://api.openweathermap.org/data/2.5/air_pollution"
         
         self.cities = {
             'Delhi': {'lat': 28.6139, 'lon': 77.2090},
@@ -228,67 +234,61 @@ class AQIDataPipeline:
             raise
     
     def save_data(self, new_data: List[Dict]) -> Optional[pd.DataFrame]:
-
         """Append new AQI records to the CSV and return all data."""
-
         try:
             # Convert new data to DataFrame
             new_df = pd.DataFrame(new_data)
-            
             if len(new_df) == 0:
                 logging.warning("No new data to save")
                 return None
-            
             # Load existing data if file exists
-            if os.path.exists(self.output_file):
+            if os.path.exists(self.local_output):
                 try:
-                    existing_df = pd.read_csv(self.output_file)
+                    existing_df = pd.read_csv(self.local_output)
                     logging.info(f"Loaded {len(existing_df)} existing records")
-                    
                     # Combine datasets
                     combined_df = pd.concat([existing_df, new_df], ignore_index=True)
-                    
                 except pd.errors.EmptyDataError:
                     logging.warning("Existing file is empty, starting fresh")
                     combined_df = new_df
-                    
                 except Exception as e:
                     logging.error(f"Error reading existing file: {e}")
                     # Backup the corrupted file
-                    backup_file = self.output_file.replace('.csv', f'_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
-                    os.rename(self.output_file, backup_file)
+                    backup_file = self.local_output.replace('.csv', f'_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
+                    os.rename(self.local_output, backup_file)
                     logging.info(f"Backed up corrupted file to {backup_file}")
                     combined_df = new_df
             else:
                 logging.info("Creating new data file")
                 combined_df = new_df
-            
             # Clean the combined dataset
             cleaned_df = self.clean_data(combined_df)
-            
             # Save to CSV with error handling
             try:
                 # Create backup before overwriting
-                if os.path.exists(self.output_file):
-                    temp_backup = self.output_file + '.temp'
+                if os.path.exists(self.local_output):
+                    temp_backup = self.local_output + '.temp'
                     cleaned_df.to_csv(temp_backup, index=False)
-                    os.replace(temp_backup, self.output_file)
+                    os.replace(temp_backup, self.local_output)
                 else:
-                    cleaned_df.to_csv(self.output_file, index=False)
-                
-                logging.info(f"Data saved to {self.output_file}")
+                    cleaned_df.to_csv(self.local_output, index=False)
+                logging.info(f"Data saved to {self.local_output}")
                 logging.info(f"Total records: {len(cleaned_df)}")
-                
+                # Save cloud copy after successful local save
+                try:
+                    os.makedirs(os.path.dirname(self.cloud_output), exist_ok=True)
+                except PermissionError:
+                    logging.warning("Google Drive not available; skipping cloud save")
+                    return cleaned_df
+                cleaned_df.to_csv(self.cloud_output, index=False)
+                logging.info(f"Cloud copy saved to {self.cloud_output}")
                 return cleaned_df
-                
             except PermissionError:
-                logging.error(f"Permission denied writing to {self.output_file}. File may be open in another program.")
+                logging.error(f"Permission denied writing to {self.local_output}. File may be open in another program.")
                 return None
-                
             except Exception as e:
                 logging.error(f"Error saving file: {e}")
                 return None
-                
         except Exception as e:
             logging.error(f"Unexpected error in save_data: {e}")
             return None
@@ -315,8 +315,8 @@ class AQIDataPipeline:
     def get_total_records(self) -> int:
         """Get total number of records in CSV file"""
         try:
-            if os.path.exists(self.output_file):
-                df = pd.read_csv(self.output_file)
+            if os.path.exists(self.local_output):
+                df = pd.read_csv(self.local_output)
                 return len(df)
             return 0
         except:
@@ -338,10 +338,10 @@ class AQIDataPipeline:
             logging.info("="*60)
             
             # Validate API key first
-            #if not self.validate_api_key():
-                #errors.append("API key validation failed")
-                #self.save_status("FAILED", 0, errors)
-                #return False
+            if not self.validate_api_key():
+                errors.append("API key validation failed")
+                self.save_status("FAILED", 0, errors)
+                return False
             
             # Collect data for all cities
             raw_data = []
@@ -368,18 +368,25 @@ class AQIDataPipeline:
             
             # Save data
             result_df = self.save_data(raw_data)
-            
+
             if result_df is not None:
+                # Write latest cleaned data to Google Sheets
+                try:
+                    write_dataframe_to_sheet(result_df)
+                    logging.info("Google Sheet updated successfully")
+                except Exception as e:
+                    logging.error(f"Failed to update Google Sheet: {e}")
+
                 end_time = datetime.now()
                 duration = (end_time - start_time).total_seconds()
-                
+
                 logging.info("="*60)
                 logging.info("Collection successful")
                 logging.info(f"  Records collected: {len(raw_data)}")
                 logging.info(f"  Total records in file: {len(result_df)}")
                 logging.info(f"  Duration: {duration:.2f} seconds")
                 logging.info("="*60)
-                
+
                 self.save_status("SUCCESS", len(raw_data), errors if errors else [])
                 return True
             else:
@@ -399,13 +406,11 @@ class AQIDataPipeline:
 
 def main():
     """Main execution with comprehensive error handling"""
-    logging.info("SCRIPT STARTED BY CRON")
+    
     try:
         # Validate configuration
-        if API_KEY == "PASTE_YOUR_API_KEY_HERE":
-            print("ERROR: API key not set!")
-            print("Edit the script and set your API key on line 31")
-            logging.error("API key not configured")
+        if not API_KEY:
+            logging.error("OPENWEATHER_API_KEY environment variable not set")
             return 1
         
         # Create output directory if it doesn't exist
@@ -414,7 +419,7 @@ def main():
            #logging.info(f"Created base directory: {BASE_DIR}")
         
         # Initialize and run pipeline
-        pipeline = AQIDataPipeline(API_KEY, OUTPUT_FILE)
+        pipeline = AQIDataPipeline(API_KEY,LOCAL_OUTPUT_FILE,CLOUD_OUTPUT_FILE)
         success = pipeline.collect_and_process()
         
         # Return exit code (0 = success, 1 = failure)
@@ -428,6 +433,6 @@ def main():
         logging.error(f"Fatal error: {type(e).__name__} - {e}")
         return 1
 
-
 if __name__ == "__main__":
     sys.exit(main())
+
