@@ -8,7 +8,7 @@ Air quality disparities across Indian cities present a critical public health ch
 
 This project is a complete end-to-end data engineering + analytics pipeline that collects real-time AQI data, processes it, visualizes trends, and explains why Delhi consistently experiences high air pollution levels.
 
-## 🔗 Live Resources
+##  Live Resources
 
 - **Live Dashboard**: https://lookerstudio.google.com/reporting/febbd29c-ea0e-42f7-8d8c-a951bbfe91c0
 - **Live Google Sheet**:https://docs.google.com/spreadsheets/d/1lbDIBplg5ONuxJjtqAfFaY5IqHj0SAYDNaj0z58xGuc/edit?usp=sharing 
