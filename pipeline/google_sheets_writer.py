@@ -17,28 +17,31 @@ WORKSHEET_NAME = "aqi_cleaned_data"
 
 def write_dataframe_to_sheet(df: pd.DataFrame):
     """
-    Full refresh write of AQI dataframe to Google Sheets.
-    Google Sheet mirrors the local CSV exactly.
+    Write the AQI dataset to Google Sheets as a full refresh.
+
+    The sheet is treated as a read-only mirror of the local CSV:
+    - existing content is cleared
+    - headers are written
+    - all rows are written in newest-first order
     """
 
-    # --- Make dataframe JSON-serializable ---
+    # Google Sheets is strict about JSON values.
+    # Pandas can contain NaN / NaT / nullable dtypes that the API rejects,
+    # so we normalise everything to plain Python objects here.
     df = df.copy()
-    # --- Make dataframe JSON-safe (Google Sheets does not allow NaN / inf / NaT) ---
-    # Convert all columns to object first to avoid pandas nullable dtype issues (UInt64, etc.)
     df = df.astype(object)
     df = df.replace([float("inf"), float("-inf")], None)
     df = df.where(pd.notnull(df), None)
 
-    # --- Enforce newest-first ordering explicitly ---
+    # Make sure the newest records always appear first in the sheet
     if "timestamp" in df.columns:
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
         df = df.sort_values("timestamp", ascending=False)
 
     for col in df.columns:
-        # pandas datetime64
+        # Convert any datetime-like columns to strings (Sheets can't store datetime objects)
         if pd.api.types.is_datetime64_any_dtype(df[col]):
             df[col] = df[col].dt.strftime("%Y-%m-%d %H:%M:%S")
-        # python date objects
         elif df[col].apply(lambda x: isinstance(x, datetime.date)).any():
             df[col] = df[col].apply(
                 lambda x: x.strftime("%Y-%m-%d") if isinstance(x, datetime.date) else x
@@ -52,6 +55,7 @@ def write_dataframe_to_sheet(df: pd.DataFrame):
     client = gspread.authorize(creds)
     spreadsheet = client.open(SPREADSHEET_NAME)
 
+    # Create the worksheet once if it doesn't already exist
     try:
         worksheet = spreadsheet.worksheet(WORKSHEET_NAME)
     except gspread.exceptions.WorksheetNotFound:
@@ -61,7 +65,7 @@ def write_dataframe_to_sheet(df: pd.DataFrame):
             cols=len(df.columns)
         )
 
-    # --- Full refresh write: mirror local CSV exactly ---
+    # Clear and rewrite the sheet so it exactly matches the local CSV
     worksheet.clear()
 
     # Write header
