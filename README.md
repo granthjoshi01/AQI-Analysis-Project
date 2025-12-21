@@ -1,51 +1,191 @@
-# AQI-Analysis-Project 
-AQI Data Engineering & Pollution Analysis Project
+🌍 AQI Analysis & Live Monitoring Pipeline
 
- Problem Statement
+An end-to-end data engineering and analytics project that automatically collects air quality data, maintains historical records, and presents live analytical insights through a dashboard.
 
-Air quality disparities across Indian cities present a critical public health challenge.During a recent journey from Udaipur to Delhi, a stark contrast in air quality became immediately apparent— Delhi's persistent haze and respiratory discomfort and Udaipur's noticeably clearer skies and fresher air. This personal observation raised fundamental questions: What quantifiable differences exist between these cities? What systemic factors drive Delhi's chronic pollution crisis? And how can data-driven insights make these invisible threats visible?
+This project focuses on correct data pipelines, reliable storage, and meaningful analytics, not just visualizations.
 
- Project Overview
+⸻
 
-This project is a complete end-to-end data engineering + analytics pipeline that collects real-time AQI data, processes it, visualizes trends, and explains why Delhi consistently experiences high air pollution levels.
+📌 Project Overview
 
-##  Live Resources
+This system continuously fetches Air Quality Index (AQI) and pollutant data for selected Indian cities, stores it as a clean historical dataset, and exposes it to a live dashboard for analysis.
 
-- **Live Dashboard**: https://lookerstudio.google.com/reporting/febbd29c-ea0e-42f7-8d8c-a951bbfe91c0
-- **Live Google Sheet**:https://docs.google.com/spreadsheets/d/1lbDIBplg5ONuxJjtqAfFaY5IqHj0SAYDNaj0z58xGuc/edit?usp=sharing 
+Key goals:
+	•	Automate AQI data collection
+	•	Preserve historical data (time-series)
+	•	Ensure data quality and consistency
+	•	Enable real-time analytical dashboards
+
+⸻
+
+🧱 Architecture
+
+OpenWeather Air Pollution API
+
+↓
+
+Python AQI Pipeline (scheduled)
+
+↓
+			
+Local CSV (source of truth)
+
+ ↓
+
+Google Drive (cloud backup)
+
+ ↓
+ 
+Google Sheets (analytics layer)
+
+ ↓
+ 
+Looker Studio (live dashboard)
 
 
+Each layer has a single responsibility, making the system easy to understand and extend.
+
+![Architecture](asset/arc1.drawio.png)
 
 
+Data Source
+	•	Provider: OpenWeather – Air Pollution API
+	•	Data Type: Observational, time-series environmental data
+	•	Cities Covered:
+	•	Delhi
+	•	Udaipur
 
-The project includes:
-	•	✔ Real-time AQI Data Pipeline (ETL)
-	•	✔ Interactive AQI Dashboard (Flask / Streamlit)
-	•	✔ Analytical Report on Delhi AQI Trends
-	•	✔ Visualizations (PM2.5, PM10, Seasonal Patterns)
-	•	✔ Research-backed explanation of Delhi’s pollution causes
+Metrics Collected
+	•	AQI index (1–5)
+	•	PM2.5, PM10
+	•	NO₂, SO₂, CO, O₃, NH₃
 
-  # Project Structure
+⸻
 
-## Components
+⚙️ Data Collection Pipeline
 
-| Component    | Description                                    |
-|-------------|------------------------------------------------|
-| `pipeline/`  | Real-time AQI collection, cleaning, and storage |
-| `dashboard/` | Web UI for AQI visualizations                   |
-| `analysis/`  | Jupyter notebook + charts + explanation         |
-| `data/`      | Cleaned datasets                                |
-| `reports/`   | Final documented findings                       |
+Script: aqi_pipeline.py
 
-## Architecture (Simple Overview)
-```
-OpenWeather API → ETL Pipeline → Clean CSV → Dashboard → Insights / Report
-```
+The pipeline performs the following steps:
+	1.	Loads configuration and environment variables
+	2.	Validates API connectivity
+	3.	Fetches AQI and pollutant data per city
+	4.	Handles retries, timeouts, and failures
+	5.	Validates and cleans incoming data
+	6.	Enriches records with analytical fields:
+	•	date, hour, day_of_week, month, year, week_number
+	•	aqi_category
+	7.	Appends new records to historical CSV
+	8.	Ensures newest records always appear at the top
+	9.	Logs execution status and metrics
 
-## Workflow
+The pipeline is idempotent, fault-tolerant, and reproducible.
 
-1. **Data Collection**: The pipeline fetches real-time air quality data from the OpenWeather API
-2. **ETL Process**: Data is extracted, transformed, and loaded into clean CSV format
-3. **Visualization**: The dashboard provides interactive visualizations of AQI data
-4. **Analysis**: Jupyter notebooks contain detailed analysis with charts and explanations
-5. **Reporting**: Final insights and findings are documented in the reports directory
+⸻
+
+⏱ Scheduling & Automation
+	•	Scheduler: launchd (macOS LaunchAgent)
+	•	Frequency: Configurable (e.g., every 10 minutes)
+	•	Behavior:
+	•	Runs automatically while the system is awake
+	•	Designed for local development and demos
+
+In production, this scheduler would typically be migrated to a cloud VM or managed scheduler.
+
+⸻
+
+📁 Data Storage
+
+Local CSV (Source of Truth)
+	•	Maintains full historical dataset
+	•	Schema is stable and version-controlled
+
+Google Drive
+	•	Cloud backup of the CSV
+	•	Protects against local data loss
+
+⸻
+
+📊 Google Sheets Sync
+
+Script: google_sheets_writer.py
+	•	Syncs the cleaned dataset to Google Sheets
+	•	Converts data into Google Sheets–compatible format
+	•	Handles:
+	•	datetime serialization
+	•	NaN / null values
+	•	strict JSON constraints
+	•	Uses full refresh writes to guarantee consistency
+
+The Google Sheet is treated as a read-only analytics mirror, not a data entry layer.
+
+⸻
+
+📈 Analytics & Dashboard
+
+Tool: Looker Studio
+
+The dashboard is designed using data analyst best practices, not ad-hoc charts.
+
+Key Pages
+	•	Overview: Current AQI snapshot by city
+	•	Trends: AQI time-series analysis
+	•	City Comparison: Average AQI across cities
+	•	Pollutant Analysis: PM2.5, PM10, and gaseous pollutants comparison
+
+Design Principles
+	•	Correct chart selection (grouped bars, time series)
+	•	Meaningful aggregation (average vs raw values)
+	•	Filters for date range and city
+	•	No misleading stacked pollutant charts
+
+![AQI Dashboard](asset/dashboard1.png)
+![AQI Dashboard](asset/dashboard2.png)
+⸻
+
+🧪 Data Quality & Validity
+
+Strengths
+	•	Real external data source
+	•	Consistent automated collection
+	•	Timestamped and traceable
+	•	Suitable for monitoring and trend analysis
+
+Limitations
+	•	Dependent on OpenWeather’s sensors and models
+	•	Not regulatory-grade air quality data
+	•	Intended for analytics, not enforcement
+
+These limitations are explicitly acknowledged, which is standard professional practice.
+
+⸻
+
+🛠 Technologies Used
+	•	Python (requests, pandas)
+	•	OpenWeather API
+	•	Google Sheets API
+	•	Looker Studio
+	•	launchd (macOS)
+	•	Git & GitHub
+
+How to Run Locally
+
+1. Set environment variable
+   
+       export OPENWEATHER_API_KEY="your_api_key_here"
+
+3. Run pipeline
+   
+       python3 aqi_pipeline.py
+
+5. (Optional) Enable schedule
+   Load the LaunchAgent plist to run automatically.
+
+
+   📌 Skills Demonstrated
+	•	API integration and ETL pipelines
+	•	Time-series data handling
+	•	Fault-tolerant automation
+	•	Data cleaning and enrichment
+	•	Analytics-driven dashboard design
+	•	Production-aware engineering decisions
