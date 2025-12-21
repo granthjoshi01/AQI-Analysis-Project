@@ -8,7 +8,7 @@ SCOPES = [
 ]
 
 # Path to your service account key
-SERVICE_ACCOUNT_FILE = "service_account.json"
+SERVICE_ACCOUNT_FILE = "your_json_file"
 
 # Google Sheet details
 SPREADSHEET_NAME = "NAME_OF_SPREADSHEET"
