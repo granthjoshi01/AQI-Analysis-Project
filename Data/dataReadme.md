@@ -39,6 +39,6 @@ A live Google Sheets document provides a convenient, shareable view of key AQI t
 
 note : its fetched inside a live dashboard
 
-Spreadsheet link : https://docs.google.com/spreadsheets/d/1lbDIBplg5ONuxJjtqAfFaY5IqHj0SAYDNaj0z58xGuc/edit?gid=1097246749#gid=1097246749
+Spreadsheet link : https://docs.google.com/spreadsheets/d/1lbDIBplg5ONuxJjtqAfFaY5IqHj0SAYDNaj0z58xGuc/edit?usp=sharing
 
-Maintained as part of the AQI Analysis Project.
+Maintained and changes as part of the AQI Analysis Project.
