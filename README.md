@@ -18,6 +18,10 @@ Key goals:
 
 ⸻
 
+**Live Dashboard** : https://lookerstudio.google.com/reporting/febbd29c-ea0e-42f7-8d8c-a951bbfe91c0
+**Live spreadsheet** :https://docs.google.com/spreadsheets/d/1lbDIBplg5ONuxJjtqAfFaY5IqHj0SAYDNaj0z58xGuc/edit?usp=sharing
+
+
 🧱 Architecture
 
 OpenWeather Air Pollution API
