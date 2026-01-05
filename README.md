@@ -1,4 +1,4 @@
-🌍 AQI Analysis & Live Monitoring Pipeline
+## AQI Analysis & Live Monitoring Pipeline
 
 An end-to-end data engineering and analytics project that automatically collects air quality data, maintains historical records, and presents live analytical insights through a dashboard.
 
@@ -6,7 +6,7 @@ This project focuses on correct data pipelines, reliable storage, and meaningful
 
 ⸻
 
-📌 Project Overview
+## Project Overview
 
 This system continuously fetches Air Quality Index (AQI) and pollutant data for selected Indian cities, stores it as a clean historical dataset, and exposes it to a live dashboard for analysis.
 
@@ -23,7 +23,7 @@ Key goals:
 **Live spreadsheet** :https://docs.google.com/spreadsheets/d/1lbDIBplg5ONuxJjtqAfFaY5IqHj0SAYDNaj0z58xGuc/edit?usp=sharing
 
 
-🧱 Architecture
+## Architecture
 
 OpenWeather Air Pollution API
 
@@ -53,26 +53,45 @@ Each layer has a single responsibility, making the system easy to understand and
 ![Architecture](asset/arc1.drawio.png)
 
 
-Data Source
+**Data Source**
 	•	Provider: OpenWeather – Air Pollution API
 	•	Data Type: Observational, time-series environmental data
 	•	Cities Covered:
 	•	Delhi
 	•	Udaipur
 
-Metrics Collected
+**Metrics Collected**
 	•	AQI index (1–5)
 	•	PM2.5, PM10
 	•	NO₂, SO₂, CO, O₃, NH₃
 
 ⸻
 
-⚙️ Data Collection Pipeline
+## Design Decisions
+
+- Used a scheduled pipeline instead of manual scripts to ensure continuous
+  time-series data collection.
+
+- Treated local CSV files as the source of truth and Google Sheets as a live
+  monitoring layer to balance reliability and accessibility.
+
+- Followed an append-only data strategy to preserve historical AQI records
+  and enable trend analysis.
+
+- Separated pipeline, dashboard, and data layers to keep the system modular
+  and maintainable.
+
+- Prioritized data correctness, logging, and error handling over visual polish
+  to reflect production-grade analytics workflows.
+
+
+## Data Collection Pipeline
 
 Script: aqi_pipeline.py
 
 The pipeline performs the following steps:
-	1.	Loads configuration and environment variables
+	
+-   1.	Loads configuration and environment variables
 	2.	Validates API connectivity
 	3.	Fetches AQI and pollutant data per city
 	4.	Handles retries, timeouts, and failures
@@ -88,10 +107,11 @@ The pipeline is idempotent, fault-tolerant, and reproducible.
 
 ⸻
 
-⏱ Scheduling & Automation
-	•	Scheduler: launchd (macOS LaunchAgent)
-	•	Frequency: Configurable (e.g., every 10 minutes)
-	•	Behavior:
+## Scheduling & Automation
+
+- Scheduler: launchd (macOS LaunchAgent)
+- Frequency: Configurable (e.g., every 10 minutes)
+- Behavior:
 	•	Runs automatically while the system is awake
 	•	Designed for local development and demos
 
@@ -99,24 +119,27 @@ In production, this scheduler would typically be migrated to a cloud VM or manag
 
 ⸻
 
-📁 Data Storage
+## Data Storage
 
 Local CSV (Source of Truth)
-	•	Maintains full historical dataset
-	•	Schema is stable and version-controlled
+	
+- Maintains full historical dataset
+- Schema is stable and version-controlled
 
 Google Drive
-	•	Cloud backup of the CSV
-	•	Protects against local data loss
+	
+- Cloud backup of the CSV
+- Protects against local data loss
 
 ⸻
 
-📊 Google Sheets Sync
+## Google Sheets Sync
 
 Script: google_sheets_writer.py
-	•	Syncs the cleaned dataset to Google Sheets
-	•	Converts data into Google Sheets–compatible format
-	•	Handles:
+
+- Syncs the cleaned dataset to Google Sheets
+- Converts data into Google Sheets–compatible format
+- Handles:
 	•	datetime serialization
 	•	NaN / null values
 	•	strict JSON constraints
@@ -126,46 +149,50 @@ The Google Sheet is treated as a read-only analytics mirror, not a data entry la
 
 ⸻
 
-📈 Analytics & Dashboard
+## Analytics & Dashboard
 
 Tool: Looker Studio
 
 The dashboard is designed using data analyst best practices, not ad-hoc charts.
 
 Key Pages
-	•	Overview: Current AQI snapshot by city
-	•	Trends: AQI time-series analysis
-	•	City Comparison: Average AQI across cities
-	•	Pollutant Analysis: PM2.5, PM10, and gaseous pollutants comparison
+	
+- Overview: Current AQI snapshot by city
+- Trends: AQI time-series analysis
+- City Comparison: Average AQI across cities
+- Pollutant Analysis: PM2.5, PM10, and gaseous pollutants comparison
 
 Design Principles
-	•	Correct chart selection (grouped bars, time series)
-	•	Meaningful aggregation (average vs raw values)
-	•	Filters for date range and city
-	•	No misleading stacked pollutant charts
+
+- Correct chart selection (grouped bars, time series)
+- Meaningful aggregation (average vs raw values)
+- Filters for date range and city
+- No misleading stacked pollutant charts
 
 ![AQI Dashboard](asset/dashboard1.png)
 ![AQI Dashboard](asset/dashboard2.png)
 ⸻
 
-🧪 Data Quality & Validity
+## Data Quality & Validity
 
 Strengths
-	•	Real external data source
-	•	Consistent automated collection
-	•	Timestamped and traceable
-	•	Suitable for monitoring and trend analysis
+
+- Real external data source
+- Consistent automated collection
+- Timestamped and traceable
+- Suitable for monitoring and trend analysis
 
 Limitations
-	•	Dependent on OpenWeather’s sensors and models
-	•	Not regulatory-grade air quality data
-	•	Intended for analytics, not enforcement
+
+- Dependent on OpenWeather’s sensors and models
+- Not regulatory-grade air quality data
+- Intended for analytics, not enforcement
 
 These limitations are explicitly acknowledged, which is standard professional practice.
 
 ⸻
 
-🛠 Technologies Used
+## Technologies Used
 	•	Python (requests, pandas)
 	•	OpenWeather API
 	•	Google Sheets API
@@ -173,7 +200,7 @@ These limitations are explicitly acknowledged, which is standard professional pr
 	•	launchd (macOS)
 	•	Git & GitHub
 
-How to Run Locally
+## How to Run Locally
 
 1. Set environment variable
    
