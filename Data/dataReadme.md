@@ -11,7 +11,7 @@ The local CSV files are the canonical source of truth for all analyses and dashb
 
 Local CSV Files
 
-All local CSV files are version-controlled and should be treated as the project’s primary data source.
+All local CSV files should be treated as the project’s primary data source.
 
 Usage
 	•	Read locally in analysis scripts and notebooks, for example:
