@@ -16,8 +16,8 @@ All local CSV files should be treated as the project’s primary data source.
 Usage
 	•	Read locally in analysis scripts and notebooks, for example:
 
-import pandas as pd
-df = pd.read_csv("Data/processed_aqi_daily.csv")
+    import pandas as pd
+    df = pd.read_csv("Data/aqi_cleaned_data.csv")
 
 
 
