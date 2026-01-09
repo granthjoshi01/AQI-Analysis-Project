@@ -15,7 +15,8 @@ Key goals:
 	•	Preserve historical data (time-series)
 	•	Ensure data quality and consistency
 	•	Enable real-time analytical dashboards
-
+	
+**Note**: AQI values are categorical (1–5) and based on pollutant thresholds. Once the Very Poor threshold is crossed, AQI saturates at 5 even if pollutant concentrations continue to increase. Differences between cities are better understood by comparing individual pollutant levels.
 ⸻
 
 **Live Dashboard** : https://lookerstudio.google.com/reporting/febbd29c-ea0e-42f7-8d8c-a951bbfe91c0
