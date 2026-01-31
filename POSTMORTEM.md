@@ -8,6 +8,9 @@ reported a dataset configuration error.
 The issue was detected during a routine manual check and resolved by
 forcing a pipeline run.
 
+![Postmortem](asset/post1.png)
+![Postmortem](asset/post2.png)
+
 ---
 
 ## Impact
