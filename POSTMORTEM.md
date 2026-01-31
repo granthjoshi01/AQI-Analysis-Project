@@ -1,4 +1,4 @@
-# Incident Postmortem(31 January 2026): Google Sheets & Looker Studio Data Loss
+# Incident Postmortem (Jan 29–31, 2026): Google Sheets & Looker Studio Data Loss
 
 ## Summary
 On January 31, the AQI monitoring dashboard temporarily displayed no data.
