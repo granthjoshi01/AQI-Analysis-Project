@@ -24,6 +24,7 @@ Key goals:
 
 **Live spreadsheet** :https://docs.google.com/spreadsheets/d/1lbDIBplg5ONuxJjtqAfFaY5IqHj0SAYDNaj0z58xGuc/edit?usp=sharing
 
+> 📄 A production incident and lessons learned are documented in [POSTMORTEM.md](./POSTMORTEM.md)
 
 ## Architecture
 
