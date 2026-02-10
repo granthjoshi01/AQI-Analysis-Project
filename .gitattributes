@@ -1,5 +1,1 @@
-# Tell GitHub to treat Jupyter Notebooks as documentation/data
-*.ipynb linguist-documentation=true
-
-# Alternatively, if you want them ignored entirely from the bar:
-# *.ipynb linguist-vendored=true
+*.ipynb linguist-generated=true
