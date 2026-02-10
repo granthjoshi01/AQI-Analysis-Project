@@ -26,6 +26,8 @@ Key goals:
 
 > 📄 A production incident and lessons learned are documented in [POSTMORTEM.md](./POSTMORTEM.md)
 
+For a deeper understanding of AQI within this project—especially how cities like **Delhi** and **Udaipur** can both saturate at AQI 5 while conveying fundamentally different pollution realities—this contrast is examined in detail in the [exploratoryNotebook](dashboard/charts/eda.ipynb).
+
 ## Architecture
 
 OpenWeather Air Pollution API
