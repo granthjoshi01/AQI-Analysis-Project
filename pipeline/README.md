@@ -55,7 +55,7 @@ The system is built with data integrity, automation, and clarity as primary goal
 
 ## Files Explained
 
-**1. aqi_pipeline.py**
+**1. [Main aqi_pipeline](pipeline/aqi_pipeline.py)**
 
 Purpose:
 Main production pipeline that orchestrates the entire AQI data workflow.
@@ -84,7 +84,7 @@ Key Design Choices:
 
 ⸻
 
-**2. google_sheets_writer.py**
+**2. [google_sheets_writer](pipeline/google_sheets_writer.py)**
 
 Purpose:
 Dedicated writer module that mirrors the local CSV dataset to Google Sheets.
@@ -107,7 +107,7 @@ Design Philosophy:
 
 ⸻
 
-**3. test_openweather_api.py (API test script)**
+**3. [API test script](pipeline/aqi_test.py)**
 
 Purpose:
 One-time diagnostic script to validate the OpenWeather API key and endpoint.
@@ -125,7 +125,7 @@ What it verifies:
 
 ⸻
 
-**4. test_google_sheets.py (Sheets test script)**
+**4. [Test google_sheets_writer](pipeline/test_sheets_connection.py)**
 
 Purpose:
 One-time diagnostic script to validate Google Sheets API access.
