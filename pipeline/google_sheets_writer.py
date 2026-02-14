@@ -9,8 +9,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, "service_account.json")
+SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_CREDENTIALS_FILE")
 SPREADSHEET_NAME = "aqi_live_data"
 WORKSHEET_NAME = "aqi_cleaned_data"
 
@@ -24,6 +23,10 @@ def write_dataframe_to_sheet(df: pd.DataFrame):
     - headers are written
     - all rows are written in newest-first order
     """
+
+    # Defensive guard: never overwrite the sheet with empty data
+    if df is None or df.empty:
+        raise ValueError("Refusing to update Google Sheet with empty dataset")
 
     # Google Sheets is strict about JSON values.
     # Pandas can contain NaN / NaT / nullable dtypes that the API rejects,
@@ -47,6 +50,10 @@ def write_dataframe_to_sheet(df: pd.DataFrame):
                 lambda x: x.strftime("%Y-%m-%d") if isinstance(x, datetime.date) else x
             )
 
+    if not SERVICE_ACCOUNT_FILE:
+        print("GOOGLE_CREDENTIALS_FILE not set. Skipping Google Sheets upload.")
+        return
+
     creds = Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE,
         scopes=SCOPES
@@ -66,6 +73,9 @@ def write_dataframe_to_sheet(df: pd.DataFrame):
         )
 
     # Clear and rewrite the sheet so it exactly matches the local CSV
+    if df.empty:
+        raise ValueError("Abort: dataframe became empty before sheet write")
+
     worksheet.clear()
 
     # Write header

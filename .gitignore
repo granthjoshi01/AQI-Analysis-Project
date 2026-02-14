@@ -13,6 +13,7 @@ status.json
 # Ignore API keys and environment variables
 .env
 *.env
+creds.json
 
 # Ignore Python cache and temporary files
 __pycache__/

@@ -1,4 +1,10 @@
-"""AQI data collection pipeline for OpenWeather + CSV storage."""
+"""
+AQI data collection pipeline.
+
+This script periodically fetches air quality data from OpenWeather,
+stores a clean historical record locally as CSV, mirrors it to Google Drive,
+and syncs the same dataset to Google Sheets for dashboarding.
+"""
 
 import requests
 import pandas as pd
@@ -10,12 +16,15 @@ import json
 from typing import Optional, Dict, List
 import sys
 from google_sheets_writer import write_dataframe_to_sheet
-
+# Suppress noisy LibreSSL warnings (harmless, but clutter launchd logs)
 import warnings
 from urllib3.exceptions import NotOpenSSLWarning
 warnings.filterwarnings("ignore", category=NotOpenSSLWarning)
 
-# Load API key from environment variable
+
+# ------------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------------
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 GOOGLE_DRIVE_DIR = "/Users/granthjoshi/Library/CloudStorage/GoogleDrive-granthjoshi611@gmail.com/My Drive/AQI_Project"
@@ -40,7 +49,16 @@ if not logging.getLogger().handlers:
 
 
 class AQIDataPipeline:
-    """AQI data collection pipeline"""
+    """
+    End-to-end AQI data pipeline.
+
+    Handles:
+    - fetching data from OpenWeather
+    - validation and cleaning
+    - historical CSV storage
+    - Google Drive backup
+    - Google Sheets sync
+    """
     
     def __init__(self, api_key: str, local_output: str, cloud_output: str ):
         self.api_key = api_key
@@ -138,7 +156,7 @@ class AQIDataPipeline:
         except Exception as e:
             logging.error(f"Unexpected error fetching {city_name}: {type(e).__name__} - {e}")
         
-        # Retry logic
+        # Retry on transient failures (network, rate limits, etc.)
         if retry_count < MAX_RETRIES - 1:
             logging.info(f"Retrying {city_name} in {RETRY_DELAY} seconds...")
             time.sleep(RETRY_DELAY)
@@ -169,7 +187,12 @@ class AQIDataPipeline:
         return True
     
     def clean_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Clean the collected data"""
+        """
+        Clean and enrich the AQI dataset.
+
+        This step removes duplicates, fixes timestamps, fills missing values,
+        adds time-based analysis columns, and ensures consistent ordering.
+        """
         try:
             logging.info("Starting data cleaning...")
             
@@ -223,8 +246,8 @@ class AQIDataPipeline:
                 logging.warning(f"Removing {outliers} extreme outlier records")
                 df = df[~outlier_mask]
             
-            # Sort by timestamp (newest first)
-            df = df.sort_values('timestamp', ascending=False)
+            # Sort by timestamp (newest first), then by city ascending
+            df = df.sort_values(['timestamp', 'city'], ascending=[False, True])
             
             logging.info(f"Data cleaning complete. Final row count: {len(df)}")
             return df
@@ -234,7 +257,12 @@ class AQIDataPipeline:
             raise
     
     def save_data(self, new_data: List[Dict]) -> Optional[pd.DataFrame]:
-        """Append new AQI records to the CSV and return all data."""
+        """
+        Append newly collected AQI records to the local CSV.
+
+        The full historical dataset is then cleaned, sorted (newest first),
+        saved locally, and backed up to Google Drive.
+        """
         try:
             # Convert new data to DataFrame
             new_df = pd.DataFrame(new_data)
@@ -324,10 +352,13 @@ class AQIDataPipeline:
     
     def collect_and_process(self) -> bool:
         """
-        Main collection function with complete error handling
-        
-        Returns:
-            True if successful, False if failed
+        Main pipeline execution.
+
+        Runs a single collection cycle:
+        - validates configuration
+        - fetches data for all cities
+        - updates local and cloud storage
+        - syncs Google Sheets
         """
         start_time = datetime.now()
         errors = []
@@ -366,14 +397,20 @@ class AQIDataPipeline:
                 self.save_status("FAILED", 0, errors)
                 return False
             
-            # Save data
+            # Save data to CSV (full history)
             result_df = self.save_data(raw_data)
 
             if result_df is not None:
-                # Write latest cleaned data to Google Sheets
+                # Write FULL cleaned dataset to Google Sheets (mirror CSV)
                 try:
-                    write_dataframe_to_sheet(result_df)
-                    logging.info("Google Sheet updated successfully")
+                    ENABLE_GOOGLE_UPLOAD = os.getenv("ENABLE_GOOGLE_UPLOAD", "true").lower() == "true"
+
+                    if ENABLE_GOOGLE_UPLOAD:
+                        write_dataframe_to_sheet(result_df)
+                        logging.info("Google Sheet updated successfully")
+                    else:
+                        logging.info("Google Sheet upload disabled via environment variable")
+
                 except Exception as e:
                     logging.error(f"Failed to update Google Sheet: {e}")
 
@@ -405,7 +442,11 @@ class AQIDataPipeline:
 
 
 def main():
-    """Main execution with comprehensive error handling"""
+    """
+    Script entry point.
+
+    Designed to be safe for manual runs, cron, or launchd scheduling.
+    """
     
     try:
         # Validate configuration
@@ -435,4 +476,5 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
 
