@@ -1,0 +1,11 @@
+
+# OpenWeather API Key
+OPENWEATHER_API_KEY=your_openweather_api_key_here
+
+# Absolute path to your Google Service Account JSON file
+GOOGLE_CREDENTIALS_FILE=/absolute/path/to/service_account.json
+
+# Enable or disable Google Sheets upload
+# true  -> upload enabled
+# false -> skip Google Sheets update
+ENABLE_GOOGLE_UPLOAD=true
